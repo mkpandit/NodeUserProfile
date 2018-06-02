@@ -1,0 +1,60 @@
+<%- include ../layouts/header.ejs %>
+<div class="row">
+    <div class="col"></div>
+    <div class="col">
+        <% if( messages.error ) { %>
+            <p style="color: red;"><%- messages.error %></p>
+        <% } %>
+
+        <% if( messages.success ) { %>
+            <p style="color: green;"><%- messages.success %></p>
+        <% } %>
+    </div>
+    <div class="col"></div>
+</div>
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-8">
+        <form action="/users/add" method="post" name="form1" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="firstname">First name</label>
+                <input type="text" name="firstname" id="firstname" class="form-control" value="<%- firstname %>" placeholder="First name" />
+            </div>
+            <div class="form-group">
+                <label for="lastname">Last name</label>
+                <input type="text" name="lastname" id="lastname" class="form-control" value="<%- lastname %>" placeholder="Last name" />
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="text" name="email" id="email" class="form-control" value="<%- email %>" placeholder="email@example.com" aria-describedby="emailHelp" />
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" name="phone" id="phone" class="form-control" value="<%- phone %>" placeholder="+1-434-909-6967" />
+            </div>
+            <div class="form-group">
+                <label for="dateofbirth">Date of birth</label>
+                <input type="text" name="dateofbirth" id="dateofbirth" class="form-control" value="<%- dateofbirth %>" placeholder="Jan 10, 2001" />
+            </div>
+            <div class="form-group">
+                <label for="bloodgroup">Blood group</label>
+                <input type="text" name="bloodgroup" id="bloodgroup" class="form-control" value="<%- bloodgroup %>" placeholder="B+" />
+            </div>
+            <div class="form-group">
+                <label for="occupation">Occupation</label>
+                <input type="text" name="occupation" id="occupation" class="form-control" value="<%- occupation %>" placeholder="Business / Student / Farming" />
+            </div>
+            <div class="form-group">
+                <label for="profilePic">Profile picture</label>
+                <input type="file" name="profilePic" class="form-control-file" id="profilePic">
+            </div>
+            <div class="form-group">
+                <button type="submit" name="submit" class="btn btn-primary mb-2">Add profile</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-2"></div>
+</div>
+
+<%- include ../layouts/footer.ejs %>

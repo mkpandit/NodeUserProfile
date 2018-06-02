@@ -1,0 +1,44 @@
+<%- include ../layouts/header.ejs %>
+
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-8">
+        <% if( messages.error ) { %>
+            <p style="color: red;"><%- messages.error %></p>
+        <% } %>
+
+        <% if( messages.success ) { %>
+            <p style="color: green;"><%- messages.success %></p>
+        <% } %>
+    </div>
+    <div class="col-2"></div>
+</div>
+<% if( data ) { %>
+    <% data.forEach(function( user )  { %>
+    <div class="row">
+        <div class="col-2"></div>
+        <div class="col-8">
+            <div class="row">
+                <div class="col-5">
+                    <a href="/users/edit/<%= user._id %>"> <i class="fas fa-user-edit"></i></a>
+                    <a href="/users/view/<%= user._id %>"><%= user.lastname %>, <%= user.firstname %></a>
+                </div>
+                <div class="col-5">
+                        <i class="fas fa-phone-square"></i> <%= user.phone %>, 
+                        <i class="fas fa-tint"></i> <%= user.bloodgroup %></div>
+                <div class="col-2">
+                    <form method="post" action="/users/delete/<%= user._id %>">
+                        <button type="submit" name="delete" onclick="return confirm( 'Are you sure you want to delete <%= user.lastname %>, <%= user.firstname %>?' ); ">
+                            <i class="fas fa-trash-alt"></i>
+                        </button> 
+                        <input type="hidden" name="_method" value="DELETE" />
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-2"></div>
+    </div>
+    <% } );%>
+<% } %>
+
+<%- include ../layouts/footer.ejs %>
