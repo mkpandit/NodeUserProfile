@@ -182,7 +182,7 @@ app.put( '/edit/:id', function( req, res, next ){
     if( ! errors ) {
         /**
          * If a file is selected to upload, upload the file and 
-         * update the profilepic value in database. 
+         * update the profilepic value in database.
         */
         if( req.files.profilePic ) {
             var file = req.files.profilePic;
