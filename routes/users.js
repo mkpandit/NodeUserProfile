@@ -5,8 +5,11 @@
 var express = require( 'express' );
 var app = express();
 var ObjectId = require( 'mongodb' ).ObjectId;
-var faker = require('faker');
+var faker = require( 'faker' );
 
+/**
+ * Implement GET method to list all profiles
+*/
 app.get( '/', function( req, res, next ) {
     req.db.collection( 'userprofile' ).find().sort( { '_id': -1 } ).toArray( function( err, result ) {
         if( err ) {
@@ -18,6 +21,9 @@ app.get( '/', function( req, res, next ) {
     } );
 } );
 
+/**
+ * Render a form to add new user 
+*/
 app.get( '/add', function( req, res, next ) {
     res.render( 'user/add', {
         title: 'Add new user',
@@ -31,6 +37,9 @@ app.get( '/add', function( req, res, next ) {
     });
 } );
 
+/**
+ * Implement POST method to add a new user to MongoDB
+*/
 app.post( '/add', function( req, res, next ) {
     req.assert( 'firstname', 'First name is required' ).notEmpty();
     req.assert( 'lastname', 'Last name is required' ).notEmpty();
@@ -39,6 +48,9 @@ app.post( '/add', function( req, res, next ) {
     var errors = req.validationErrors();
 
     if( ! errors ){
+        /**
+         * If a profile picture is selected, upload the picture
+        */
         if( req.files ) {
             var file = req.files.profilePic;
             var fileName = Date.now() + '_' + file.name;
@@ -73,6 +85,9 @@ app.post( '/add', function( req, res, next ) {
             }
         } );
     } else {
+        /**
+         * If error occurs, render the error along with the filled up form
+        */
         var error_msg = '';
         errors.forEach( function( error ) {
             error_msg += error.msg + '<br>';
@@ -92,6 +107,9 @@ app.post( '/add', function( req, res, next ) {
 
 } );
 
+/**
+ * Single user detailed view
+*/
 app.get( '/view/:id', function(req, res, next) {
     var o_id = new ObjectId( req.params.id );
     req.db.collection( 'userprofile' ).find( { '_id': o_id } ).toArray( function( err, result){
@@ -119,6 +137,9 @@ app.get( '/view/:id', function(req, res, next) {
     } );
 } );
 
+/**
+ * Render user edit form
+*/
 app.get( '/edit/:id', function(req, res, next) {
     var o_id = new ObjectId( req.params.id );
     req.db.collection( 'userprofile' ).find( { '_id': o_id } ).toArray( function( err, result){
@@ -146,20 +167,11 @@ app.get( '/edit/:id', function(req, res, next) {
     } );
 } );
 
+/**
+ * Edit a user
+*/
 app.put( '/edit/:id', function( req, res, next ){
     var o_id = new ObjectId( req.params.id );
-    var existingProfilepic = '';
-
-    req.db.collection( 'userprofile' ).find( { '_id': o_id } ).toArray( function( err, res){
-        if( err ){
-            return;
-            console.log( err );
-        } else if( res ) {
-            existingProfilepic = res[0].profilepic;
-        } else {
-            console.log( 'Error while editing' );
-        }
-    } );
 
     req.assert( 'firstname', 'First name is required' ).notEmpty();
     req.assert( 'lastname', 'Last name is required' ).notEmpty();
@@ -168,7 +180,10 @@ app.put( '/edit/:id', function( req, res, next ){
     var errors = req.validationErrors();
 
     if( ! errors ) {
-
+        /**
+         * If a file is selected to upload, upload the file and 
+         * update the profilepic value in database. 
+        */
         if( req.files.profilePic ) {
             var file = req.files.profilePic;
             var fileName = Date.now() + '_' + file.name;
@@ -179,48 +194,64 @@ app.put( '/edit/:id', function( req, res, next ){
                     console.log( 'fileuploaded successfully' );
                 }
             } );
-
-            var user = {
-                firstname: req.sanitize( 'firstname' ).escape().trim(),
-                lastname: req.sanitize( 'lastname' ).escape().trim(),
-                email: req.sanitize( 'email' ).escape().trim(),
-                phone: req.sanitize( 'phone' ).escape().trim(),
-                dateofbirth: req.sanitize( 'dateofbirth' ).escape().trim(),
-                bloodgroup: req.sanitize( 'bloodgroup' ).escape().trim(),
-                occupation: req.sanitize( 'occupation' ).escape().trim(),
-                profilepic: fileName
-            };
+            req.db.collection( 'userprofile' ).update( 
+                { '_id': o_id }, { $set: { 
+                    firstname: req.sanitize( 'firstname' ).escape().trim(),
+                    lastname: req.sanitize( 'lastname' ).escape().trim(),
+                    email: req.sanitize( 'email' ).escape().trim(),
+                    phone: req.sanitize( 'phone' ).escape().trim(),
+                    dateofbirth: req.sanitize( 'dateofbirth' ).escape().trim(),
+                    bloodgroup: req.sanitize( 'bloodgroup' ).escape().trim(),
+                    occupation: req.sanitize( 'occupation' ).escape().trim(),
+                    profilepic: fileName 
+                } }, function( err, result ) {
+                if( err ) {
+                    req.flash( 'error', err );
+                    res.render( 'user/edit', {
+                        id: req.params.id,
+                        firstname: req.body.firstname,
+                        lastname: req.body.lastname,
+                        email: req.body.email,
+                        phone: req.body.phone,
+                        dateofbirth: req.body.dateofbirth,
+                        bloodgroup: req.body.bloodgroup,
+                        occupation: req.body.occupation,
+                        profilepic: ''
+                    } );
+                } else {
+                    req.flash( 'success', 'User data updated successfully' );
+                    res.redirect( '/users' );
+                }
+            } );
         } else {
-            var user = {
-                firstname: req.sanitize( 'firstname' ).escape().trim(),
-                lastname: req.sanitize( 'lastname' ).escape().trim(),
-                email: req.sanitize( 'email' ).escape().trim(),
-                phone: req.sanitize( 'phone' ).escape().trim(),
-                dateofbirth: req.sanitize( 'dateofbirth' ).escape().trim(),
-                bloodgroup: req.sanitize( 'bloodgroup' ).escape().trim(),
-                occupation: req.sanitize( 'occupation' ).escape().trim(),
-                profilepic: 'no_image.jpg'
-            };
+            req.db.collection( 'userprofile' ).update( 
+                { '_id': o_id }, { $set: { 
+                    firstname: req.sanitize( 'firstname' ).escape().trim(),
+                    lastname: req.sanitize( 'lastname' ).escape().trim(),
+                    email: req.sanitize( 'email' ).escape().trim(),
+                    phone: req.sanitize( 'phone' ).escape().trim(),
+                    dateofbirth: req.sanitize( 'dateofbirth' ).escape().trim(),
+                    bloodgroup: req.sanitize( 'bloodgroup' ).escape().trim(),
+                    occupation: req.sanitize( 'occupation' ).escape().trim()
+                } }, function( err, result ) {
+                if( err ) {
+                    req.flash( 'error', err );
+                    res.render( 'user/edit', {
+                        id: req.params.id,
+                        firstname: req.body.firstname,
+                        lastname: req.body.lastname,
+                        email: req.body.email,
+                        phone: req.body.phone,
+                        dateofbirth: req.body.dateofbirth,
+                        bloodgroup: req.body.bloodgroup,
+                        occupation: req.body.occupation
+                    } );
+                } else {
+                    req.flash( 'success', 'User data updated successfully' );
+                    res.redirect( '/users' );
+                }
+            } );
         }
-        req.db.collection( 'userprofile' ).update( { '_id': o_id }, user, function( err, result ) {
-            if( err ) {
-                req.flash( 'error', err );
-                res.render( 'user/edit', {
-                    id: req.params.id,
-                    firstname: req.body.firstname,
-                    lastname: req.body.lastname,
-                    email: req.body.email,
-                    phone: req.body.phone,
-                    dateofbirth: req.body.dateofbirth,
-                    bloodgroup: req.body.bloodgroup,
-                    occupation: req.body.occupation,
-                    profilepic: existingProfilepic
-                } );
-            } else {
-                req.flash( 'success', 'User data updated successfully' );
-                res.redirect( '/users' );
-            }
-        } );
     } else {
         var error_msg = '';
         errors.forEach( function( error ) {
@@ -238,7 +269,7 @@ app.put( '/edit/:id', function( req, res, next ){
             dateofbirth: req.body.dateofbirth,
             bloodgroup: req.body.bloodgroup,
             occupation: req.body.occupation,
-            profilepic: existingProfilepic
+            profilepic: ''
         } );
     }
 } );
