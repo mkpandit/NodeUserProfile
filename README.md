@@ -17,3 +17,10 @@
 - List user
 - Edit user
 - Delete user
+
+### Usage
+- Get NodeJS (npm comes with it) and MongoDB up and running
+- Edit the `config.js` file if needed
+- run `npm install`
+- run `npm start` (I am using nodemon, you can change it in package.json)
+- Access the application at `http://localhost:3000`
