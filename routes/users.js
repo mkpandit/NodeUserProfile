@@ -5,6 +5,7 @@
 var express = require( 'express' );
 var app = express();
 var ObjectId = require( 'mongodb' ).ObjectId;
+var fs = require( 'fs' );
 var faker = require( 'faker' );
 
 /**
@@ -216,11 +217,17 @@ app.put( '/edit/:id', function( req, res, next ){
                         dateofbirth: req.body.dateofbirth,
                         bloodgroup: req.body.bloodgroup,
                         occupation: req.body.occupation,
-                        profilepic: ''
+                        profilepic: req.body.existingProfilePic
                     } );
                 } else {
-                    req.flash( 'success', 'User data updated successfully' );
-                    res.redirect( '/users' );
+                    fs.unlink( 'profilePics/'+req.body.existingProfilePic , function( err) {
+                        if( err ) {
+                            console.log( err );
+                        } else {
+                            req.flash( 'success', 'User data updated successfully' );
+                            res.redirect( '/users' );
+                        }
+                    } );
                 }
             } );
         } else {
@@ -269,20 +276,38 @@ app.put( '/edit/:id', function( req, res, next ){
             dateofbirth: req.body.dateofbirth,
             bloodgroup: req.body.bloodgroup,
             occupation: req.body.occupation,
-            profilepic: ''
+            profilepic: req.body.existingProfilePic
         } );
     }
 } );
 
 app.delete( '/delete/:id', function( req, res, next ){
     var o_id = new ObjectId( req.params.id );
-    req.db.collection( 'userprofile' ).remove( { '_id': o_id }, function( err, result ){
+
+    req.db.collection( 'userprofile' ).find( { '_id': o_id } ).toArray( function( err, result){
         if( err ){
-            req.flash( 'error', err );
+            return;
+            console.log( err );
+        }
+        if( ! result ) {
+            req.flash( 'error', 'User not found with id = ' + req.params.id );
             res.redirect( '/users' );
         } else {
-            req.flash( 'success', 'User deleted successfully! ID = ' + req.params.id );
-            res.redirect( '/users' );
+            fs.unlink( 'profilePics/'+result[0].profilepic, function( err ) {
+                if( err ) {
+                    console.log( err );
+                } else {
+                    req.db.collection( 'userprofile' ).remove( { '_id': o_id }, function( err, result ){
+                        if( err ){
+                            req.flash( 'error', err );
+                            res.redirect( '/users' );
+                        } else {
+                            req.flash( 'success', 'User deleted successfully!' );
+                            res.redirect( '/users' );
+                        }
+                    } );
+                }
+            } );
         }
     } );
 } );

@@ -27,6 +27,7 @@
     <div class="col-8">
         <form action="/users/edit/<%= id %>" method="post" enctype="multipart/form-data" name="form1">
             <input type="hidden" name="id" value="<%= id %>" />
+            <input type="hidden" name="existingProfilePic" value="<%= profilepic %>" />
             <div class="form-group">
                 <div class="profile-pic">
                     <img src="/profilePics/<%=  profilepic %>" width="100" />
