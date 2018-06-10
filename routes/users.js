@@ -9,20 +9,6 @@ var fs = require( 'fs' );
 var faker = require( 'faker' );
 
 /**
- * Implement GET method to list all profiles
-*/
-app.get( '/', function( req, res, next ) {
-    req.db.collection( 'userprofile' ).find().sort( { '_id': -1 } ).toArray( function( err, result ) {
-        if( err ) {
-            req.flash( 'error', err );
-            res.render( 'user/list', { title: 'User list', data: '' });
-        } else {
-            res.render( 'user/list', { title: 'User list', data: result } );
-        }
-    } );
-} );
-
-/**
  * Render a form to add new user 
 */
 app.get( '/add', function( req, res, next ) {
@@ -55,7 +41,7 @@ app.post( '/add', function( req, res, next ) {
         if( req.files ) {
             var file = req.files.profilePic;
             var fileName = Date.now() + '_' + file.name;
-            file.mv( './profilePics/'+fileName, function( err ) {
+            file.mv( 'profilePics/'+fileName, function( err ) {
                 if( err ) {
                     console.log( err );
                 }
@@ -188,7 +174,7 @@ app.put( '/edit/:id', function( req, res, next ){
         if( req.files.profilePic ) {
             var file = req.files.profilePic;
             var fileName = Date.now() + '_' + file.name;
-            file.mv( './profilePics/'+fileName, function( err ) {
+            file.mv( 'profilePics/'+fileName, function( err ) {
                 if( err ) {
                     console.log( err );
                 } else {
@@ -306,6 +292,28 @@ app.delete( '/delete/:id', function( req, res, next ){
                             res.redirect( '/users' );
                         }
                     } );
+                }
+            } );
+        }
+    } );
+} );
+
+/**
+ * Implement GET method to list all profiles
+*/
+app.get( ['/', '/:page'], function( req, res, next ) {
+    var perpage = 10;
+    var page = req.params.page || 1;
+    req.db.collection( 'userprofile' ).find().sort( { '_id': -1 } ).skip( (perpage * page ) - perpage ).limit( perpage ) .toArray( function( err, result ) {
+        if( err ) {
+            req.flash( 'error', err );
+            res.render( 'user/list', { title: 'User list', data: '' });
+        } else {
+            req.db.collection( 'userprofile' ).count( function( er, count ) {
+                if( er ){
+                    console.log( er );
+                } else {
+                    res.render( 'user/list', { title: 'User list', data: result, current: page, pages: Math.ceil( count/perpage ) } );
                 }
             } );
         }
